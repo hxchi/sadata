@@ -1,0 +1,141 @@
+// test 2016 iThemba data
+
+*formats
+
+clovers[1:10](e1, e2, e3, e4, x1, x2, x3, x4)
+
+
+
+*data
+
+Gainarray segA
+
+1 (1.529537    0.9315002    0.000000)
+2 (0.3853398   0.3780594    0.000000)
+3 (1.675121    0.8680820    0.000000)
+4 (0.5137610   0.3846695    0.000000)
+5 (0.4580306   0.8437843    0.000000)
+6 (0.2599622   0.6200084    0.000000)
+7 (0.000000    0.000000     0.000000)
+8 (1.208792    0.3684951    0.000000)
+9 (0.8812979   0.3613509    0.000000)
+
+Gainarray segB
+
+1 (2.338386    0.8667819    0.000000)
+2 (0.7123356   0.3616832    0.000000)
+3 (-0.4553862  1.042516     0.000000)
+4 (1.610414    0.3934391    0.000000)
+5 (1.664739    0.8490701    0.000000)
+6 (0.8942956   0.5537816    0.000000)
+7 (0.000000    0.000000     0.000000)
+8 (1.164386    0.3832654    0.000000)
+9 (0.8324438   0.3728535    0.000000)
+
+Gainarray segC
+
+1 (1.355675    0.9447178    0.000000)
+2 (-0.6854855E-01 0.3683470 0.000000)
+3 (-0.2848924  0.8354598    0.000000)
+4 (1.049906    0.5622606    0.000000)
+5 (1.475449    0.8017563    0.000000)
+6 (-7.638188   0.6005703    0.000000)
+7 (0.000000    0.000000     0.000000)
+8 (0.4548039   0.5905564    0.000000)
+9 (0.8470769   0.3572518    0.000000)
+
+Gainarray segD
+
+1 (1.193938    0.9419458    0.000000)
+2 (0.3544670   0.3700001    0.000000)
+3 (0.1990031E-01 0.8880249  0.000000)
+4 (1.272407    0.5388153    0.000000)
+5 (0.4972373   0.8050018    0.000000)
+6 (0.9347000   0.3750544    0.000000)
+7 (0.000000    0.000000     0.000000)
+8 (0.7046496   0.5234648    0.000000)
+9 (0.9402483   0.3625569    0.000000)
+
+long da = 0
+long db = 0
+long dc = 0
+long dd = 0
+long xa = 0
+long xb = 0
+long xc = 0
+long xd = 0
+
+// energy
+long ea = 0
+long eb = 0
+long ec = 0
+long ed = 0
+valuearray timecfired[1:2] 0 0
+valuearray timec[1:4] 0 0 0 0
+valuearray timex[1:4] 0 0 0 0
+valuearray energyc[1:4] 0 0 0 0
+
+
+
+*spectra
+
+clovera[1:10] 16384 32
+cloverb[1:10] 16384 32
+cloverc[1:10] 16384 32
+cloverd[1:10] 16384 
+
+firecnum 10 32  // which clover fired
+multevent 10 32 // how many clovers fired in an event 
+itemsize 10 32 // the size of each clover(guess define in the *format)
+
+
+*commands
+
+createlist gelist from clovers
+
+
+loopextract gelist into $c
+{
+	// energy specture
+	g = group($c)
+	if g eq 1 // test energy
+	{
+		energyc(1) = $c.e1
+		ea = energyc(1)
+		print ea
+		timex(1) = $c.x1
+		xa = timex(1)
+		print xa
+
+		energyc(2) = $c.e2
+		eb = energyc(2)
+		print eb
+		timex(2) = $c.x2
+		xb = timex(2)
+		print xb
+
+		energyc(3) = $c.e3
+		ec = energyc(3)
+		print ec
+		timex(3) = $c.x3
+		xc = timex(3)
+		print xc
+
+		energyc(4) = $c.e4
+		ed = energyc(4)
+		print ed
+		timex(4) = $c.x4
+		xd = timex(4)
+		print xd
+	}
+
+}
+
+
+*runfiles
+
+DISC /home/hxc/Desktop/data/d16/R3_test
+
+
+*finish
+
