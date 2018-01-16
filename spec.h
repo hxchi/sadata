@@ -9,7 +9,7 @@ using std::endl;
 
 int geteff(double eff[9][4][3])
 {
-	ifstream fp ("../d17/eff/r17.txt");	
+	ifstream fp ("~/sadata/d17/eff/r17.txt");	
 
 	if (!fp) {
 		cout << "can not open the file." << endl;

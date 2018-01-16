@@ -8,7 +8,7 @@
 int main()
 {
 	// from root
-	TFile *prf = new TFile("totalspec.root", "recreate");
+	TFile *prf = new TFile("~/sadata/out/totalspec.root", "recreate");
 	TCanvas *c = new TCanvas("c", " ", 600, 600);
 	TH1D *h = new TH1D("h", " ", 16384, 0, 16383);
 
@@ -32,7 +32,7 @@ int main()
 
 	FILE *fp;
 
-	if ((fp=fopen("../d17/R17_0", "rb")) == NULL) {
+	if ((fp=fopen("~/sadata/d17/R17_0", "rb")) == NULL) {
 		printf("can not open the file.\n");
 		return -1;
 	}
