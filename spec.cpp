@@ -78,7 +78,7 @@ int main()
 					tdc = *(pb-1) & 0x3FFF; 
 				}
 			}
-			else { // to check if there is any other possibility ?
+			else { // to check if there is any other possibility ? yes, but forget it.
 				// cout << "line 104... other label_head..." << endl;
 				continue;
 			}
