@@ -1,0 +1,87 @@
+*formats
+
+clovers[1:10](e1, e2, e3, e4, t1, t2, t3, t4)
+labr[11:18](e1, e2, e3, e4, t1, t2, t3, t)
+CSI[21:84](e,t,q0,q1,q2,q3)
+
+*data
+
+long qlong
+long qshort
+
+*spectra
+
+csiq0[1:64]             16384 32
+csiq1[1:64]             16384 32
+csiq2[1:64]             16384 32
+csiq3[1:64]             16384 32
+qshortsp[1:64]		16384 32
+qlongsp[1:64]		16384 32
+pid[1:64]		2048  2d
+
+*commands
+
+createlist fired from CSI
+
+q0 = 0
+q1 = 0
+q2 = 0
+q3 = 0
+
+k0 = 1
+k1 = 2
+qshort = 0
+qlong = 0
+
+loopextract fired into $csi
+{
+	g = group($csi)
+	g = g -20
+  
+	q0 = $csi.q0 / 8
+	q1 = $csi.q1 / 8
+	q2 = $csi.q2 / 8
+	q3 = $csi.q3 / 8
+
+	if q0 passes (2, 16384)
+		inc csiq0(q0) indexed g
+
+	if q1 passes (2, 16384)
+		inc csiq1(fired.q1) indexed g
+
+	if q2 passes (2, 16384)
+		inc csiq2(q2) indexed g
+
+	if q3 passes (2, 16384)
+		inc csiq3(q3) indexed g
+
+	// for pi
+	qshort = q1 + q2 - q0 + 400
+	qlong = 2 * (q3 - q1) - 500
+	
+	if qshort passes (2, 16384)
+		inc qshortsp(qshort) indexed g
+	if qlong passes (2, 16384)
+		inc qlongsp(qlong) indexed g
+
+	if qshort passes (1, 2047)
+	{
+		if qlong passes (1, 2047)
+			inc pid(qlong, qshort) indexed g
+	}	
+
+}
+
+
+*runfiles
+
+DISC /media/data/xch/F19Ni58/Week2/R51_0
+DISC /media/data/xch/F19Ni58/Week2/R51_1
+
+
+
+
+*finish
+
+
+
