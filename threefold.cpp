@@ -1,18 +1,16 @@
 // for 2014 south africa data three demention 
 
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <iostream> 
+#include <fstream> 
+#include <string> 
 #include <stdlib.h>
-#include <stdio.h>
-// #include <io.h> // for _access()
+#include <stdio.h> 
 
 // from me
 #include "threefold.h"
 
 // from root
-#include "TCanvas.h"
-#include "TH1D.h"
+#include "TH1D.h" 
 #include "TFile.h"
 
 using std::cin; using std::cout; using std::endl; 
@@ -28,6 +26,7 @@ int main(int argc, char *argv[])
 	TFile *nf = new TFile("r.root", "recreate");
 	TH1D *htime = new TH1D("htime", " ", 8000, 0, 8000);
 	TH1D *hspec = new TH1D("hspec", " ", 4096, 0, 2047);
+	TH1D *hmultifired = new TH1D("hmultifired", " ", 10, 0, 10);
 
 	struct SARDATAHEADER // south africa data header
 	{
@@ -52,9 +51,8 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	// get eff par
+	// effective par
 	double eff[8][4][3];
-	geteff(eff);
 
 	// data clv(clover), cyl(crystal)
 	unsigned short adc[nclv][4]; 
@@ -73,7 +71,7 @@ int main(int argc, char *argv[])
 
 	// for threefold
 	long long threefoldeventnum = 0; 
-	int firecount;
+	int firecount; // for how many clovers fired in an event...
 	int timecount;
 
 	// for write into file
@@ -87,19 +85,22 @@ int main(int argc, char *argv[])
 	cout << "...start..." << endl;
 
 	FILE *fpin;
-	char rawdatafilename[42];
+	char rawdatafilename[42]; 
 	string pathdatafile;
 	int r0123;
 	for (int i = runstart; i <= runend; i++) {
 		if (i == 1 || i == 2 || i == 35) {
 			continue;
 		}
+		// get effective par here
+		geteff(i, eff); 
+
 		cout << "run ..." << i << " ..." << endl;
 		r0123 = 1;
 		while (1) { // for _0 _1 _2 ...
 			sprintf(rawdatafilename, "R%d_%d", i, r0123);
 			pathdatafile = "./" + string(rawdatafilename);
-			if ((fpin=fopen(pathdatafile.c_str(), "rb")) == NULL) { 
+			if                 ((fpin=fopen(pathdatafile.c_str(), "rb")) == NULL) { 
 				// printf("can not open %s\n", rawdatafilename);
 				break;
 			}
@@ -185,10 +186,12 @@ int main(int argc, char *argv[])
 
 						// threefold
 						for (int m = 0; m < nclv; m++) {
-							if ((eaddback[m] >= 30) && (eaddback[m] <= 2047)) {
+							if ((eaddback[m] >= 30) && (eaddback[m] <= 2047)) { // ((eaddback[m] >= 30) && (eaddback[m] <= 2047))
 								firecount++;
 							}
 						}
+
+						hmultifired->Fill(firecount);
 						if (firecount == 0) {
 							evthead_.EventStart = *pb;
 							evthead_.EventSize = *(pb+1);

@@ -6,9 +6,12 @@
 
 using std::cout; using std::endl; using std::ifstream;
 
-int geteff(double eff[8][4][3])
+int geteff(int runnumber, double eff[8][4][3])
 {
-	ifstream fp ("eff");	
+	int count = 0;
+	char filename[42];
+	sprintf(filename, "./effpar/r%d.txt", runnumber);
+	ifstream fp (filename);	
 
 	if (!fp) {
 		cout << "can not open the file." << endl;
@@ -17,16 +20,27 @@ int geteff(double eff[8][4][3])
 
 	double a[3]; // temp valiable
 
-	while (!fp.eof()) {
+	while (count < 8*4*3) {
 		for (int i = 0; i < 8; i++) {
 			for(int j = 0; j < 4; j++) {
 				for (int k = 0; k < 3; k++) {
 					fp >> a[k];
 					eff[i][j][k] = a[k];
+					count++;
 				}
 			}
 		}
 	} 
+
+	// test 
+	// for (int i = 0; i < 8; i++) {
+	// 	for(int j = 0; j < 4; j++) {
+	// 		for (int k = 0; k < 3; k++) {
+	// 			cout << eff[i][j][k] << " ";
+	// 		}
+	// 		cout << endl;
+	// 	}
+	// }
 	return 0;
 }
 
@@ -221,6 +235,96 @@ void addback(double eff[8][4][3], unsigned short adc[8][4], unsigned short tdc[8
 			}
 			else {
 				taddback[i] = cylt[i][3];
+			}
+		}
+
+		if ((adc[i][0]>0) && (adc[i][0]<0xFFFF) && (adc[i][1]>0) && (adc[i][1]<0xFFFF) && (adc[i][2]>0) && (adc[i][2]<0xFFFF) && (adc[i][3]<=0)) { // 0+1+2
+			cyle[i][0] = eff[i][0][0] + adc[i][0]*eff[i][0][1] + adc[i][0]*eff[i][0][2]*eff[i][0][2];// calculation
+			cylt[i][0] = 10 * ((etime[i][0][0]<<32) + (etime[i][0][1]<<16) + (etime[i][0][2])) - 5 + 10 * tdc[i][0] / 65536.0;
+			cyle[i][1] = eff[i][1][0] + adc[i][1]*eff[i][1][1] + adc[i][1]*eff[i][1][2]*eff[i][1][2]; // calculation
+			cylt[i][1] = 10 * ((etime[i][1][0]<<32) + (etime[i][1][1]<<16) + (etime[i][1][2])) - 5 + 10 * tdc[i][1] / 65536.0;
+			cyle[i][2] = eff[i][2][0] + adc[i][2]*eff[i][2][1] + adc[i][2]*eff[i][2][2]*eff[i][2][2]; // calculation
+			cylt[i][2] = 10 * ((etime[i][2][0]<<32) + (etime[i][2][1]<<16) + (etime[i][2][2])) - 5 + 10 * tdc[i][2] / 65536.0;
+
+			eaddback[i] = cyle[i][0] + cyle[i][1] + cyle[i][2];
+			if (cyle[i][0] > cyle[i][1] && cyle[i][0] > cyle[i][2]) {
+				taddback[i] = cylt[i][0];
+			}
+			else {
+				taddback[i] = ((cyle[i][1] > cyle[i][2]) ? cyle[i][1] : cyle[i][2]);
+			}
+		}
+
+		if ((adc[i][0]>0) && (adc[i][0]<0xFFFF) && (adc[i][1]>0) && (adc[i][1]<0xFFFF) && (adc[i][3]>0) && (adc[i][3]<0xFFFF) && (adc[i][2]<=0)) { // 0+1+3
+			cyle[i][0] = eff[i][0][0] + adc[i][0]*eff[i][0][1] + adc[i][0]*eff[i][0][2]*eff[i][0][2];// calculation
+			cylt[i][0] = 10 * ((etime[i][0][0]<<32) + (etime[i][0][1]<<16) + (etime[i][0][2])) - 5 + 10 * tdc[i][0] / 65536.0;
+			cyle[i][1] = eff[i][1][0] + adc[i][1]*eff[i][1][1] + adc[i][1]*eff[i][1][2]*eff[i][1][2]; // calculation
+			cylt[i][1] = 10 * ((etime[i][1][0]<<32) + (etime[i][1][1]<<16) + (etime[i][1][2])) - 5 + 10 * tdc[i][1] / 65536.0;
+			cyle[i][3] = eff[i][3][0] + adc[i][3]*eff[i][3][1] + adc[i][3]*eff[i][3][2]*eff[i][3][2]; // calculation
+			cylt[i][3] = 10 * ((etime[i][3][0]<<32) + (etime[i][3][1]<<16) + (etime[i][3][2])) - 5 + 10 * tdc[i][3] / 65536.0;
+
+			eaddback[i] = cyle[i][0] + cyle[i][1] + cyle[i][3];
+			if (cyle[i][0] > cyle[i][1] && cyle[i][0] > cyle[i][3]) {
+				taddback[i] = cylt[i][0];
+			}
+			else {
+				taddback[i] = ((cyle[i][1] > cyle[i][3]) ? cyle[i][1] : cyle[i][3]);
+			}
+		}
+
+		if ((adc[i][0]>0) && (adc[i][0]<0xFFFF) && (adc[i][2]>0) && (adc[i][2]<0xFFFF) && (adc[i][3]>0) && (adc[i][3]<0xFFFF) && (adc[i][1]<=0)) { // 0+2+3
+			cyle[i][0] = eff[i][0][0] + adc[i][0]*eff[i][0][1] + adc[i][0]*eff[i][0][2]*eff[i][0][2];// calculation
+			cylt[i][0] = 10 * ((etime[i][0][0]<<32) + (etime[i][0][1]<<16) + (etime[i][0][2])) - 5 + 10 * tdc[i][0] / 65536.0;
+			cyle[i][2] = eff[i][2][0] + adc[i][2]*eff[i][2][1] + adc[i][2]*eff[i][2][2]*eff[i][2][2]; // calculation
+			cylt[i][2] = 10 * ((etime[i][2][0]<<32) + (etime[i][2][1]<<16) + (etime[i][2][2])) - 5 + 10 * tdc[i][2] / 65536.0;
+			cyle[i][3] = eff[i][3][0] + adc[i][3]*eff[i][3][1] + adc[i][3]*eff[i][3][2]*eff[i][3][2]; // calculation
+			cylt[i][3] = 10 * ((etime[i][3][0]<<32) + (etime[i][3][1]<<16) + (etime[i][3][2])) - 5 + 10 * tdc[i][3] / 65536.0;
+
+			eaddback[i] = cyle[i][0] + cyle[i][2] + cyle[i][3];
+			if (cyle[i][0] > cyle[i][2] && cyle[i][0] > cyle[i][3]) {
+				taddback[i] = cylt[i][0];
+			}
+			else {
+				taddback[i] = ((cyle[i][2] > cyle[i][3]) ? cyle[i][2] : cyle[i][3]);
+			}
+		}
+
+		if ((adc[i][1]>0) && (adc[i][1]<0xFFFF) && (adc[i][2]>0) && (adc[i][2]<0xFFFF) && (adc[i][3]>0) && (adc[i][3]<0xFFFF) && (adc[i][0]<=0)) { // 1+2+3
+			cyle[i][1] = eff[i][1][0] + adc[i][1]*eff[i][1][1] + adc[i][1]*eff[i][1][2]*eff[i][1][2];// calculation
+			cylt[i][1] = 10 * ((etime[i][1][0]<<32) + (etime[i][1][1]<<16) + (etime[i][1][2])) - 5 + 10 * tdc[i][1] / 65536.0;
+			cyle[i][2] = eff[i][2][0] + adc[i][2]*eff[i][2][1] + adc[i][2]*eff[i][2][2]*eff[i][2][2]; // calculation
+			cylt[i][2] = 10 * ((etime[i][2][0]<<32) + (etime[i][2][1]<<16) + (etime[i][2][2])) - 5 + 10 * tdc[i][2] / 65536.0;
+			cyle[i][3] = eff[i][3][0] + adc[i][3]*eff[i][3][1] + adc[i][3]*eff[i][3][2]*eff[i][3][2]; // calculation
+			cylt[i][3] = 10 * ((etime[i][3][0]<<32) + (etime[i][3][1]<<16) + (etime[i][3][2])) - 5 + 10 * tdc[i][3] / 65536.0;
+
+			eaddback[i] = cyle[i][1] + cyle[i][2] + cyle[i][3];
+			if (cyle[i][1] > cyle[i][2] && cyle[i][1] > cyle[i][3]) {
+				taddback[i] = cylt[i][1];
+			}
+			else {
+				taddback[i] = ((cyle[i][2] > cyle[i][3]) ? cyle[i][2] : cyle[i][3]);
+			}
+		}
+
+		if ((adc[i][0]>0) && (adc[i][0]<0xFFFF) && (adc[i][1]>0) && (adc[i][1]<0xFFFF) && (adc[i][2]>0) && (adc[i][2]<0xFFFF) && (adc[i][3]>0) && (adc[i][3]<0xFFFF)) { // 0+1+2+3
+			cyle[i][0] = eff[i][0][0] + adc[i][0]*eff[i][0][1] + adc[i][0]*eff[i][0][2]*eff[i][0][2];// calculation
+			cylt[i][0] = 10 * ((etime[i][0][0]<<32) + (etime[i][0][1]<<16) + (etime[i][0][2])) - 5 + 10 * tdc[i][0] / 65536.0;
+			cyle[i][1] = eff[i][1][0] + adc[i][1]*eff[i][1][1] + adc[i][1]*eff[i][1][2]*eff[i][1][2]; // calculation
+			cylt[i][1] = 10 * ((etime[i][1][0]<<32) + (etime[i][1][1]<<16) + (etime[i][1][2])) - 5 + 10 * tdc[i][1] / 65536.0;
+			cyle[i][2] = eff[i][2][0] + adc[i][2]*eff[i][2][1] + adc[i][2]*eff[i][2][2]*eff[i][2][2]; // calculation
+			cylt[i][2] = 10 * ((etime[i][2][0]<<32) + (etime[i][2][1]<<16) + (etime[i][2][2])) - 5 + 10 * tdc[i][2] / 65536.0;
+			cyle[i][3] = eff[i][3][0] + adc[i][3]*eff[i][3][1] + adc[i][3]*eff[i][3][2]*eff[i][3][2]; // calculation
+			cylt[i][3] = 10 * ((etime[i][3][0]<<32) + (etime[i][3][1]<<16) + (etime[i][3][2])) - 5 + 10 * tdc[i][3] / 65536.0;
+
+			eaddback[i] = cyle[i][0] + cyle[i][1] + cyle[i][2] + cyle[i][3];
+			if (cyle[i][0] > cyle[i][1] && cyle[i][0] > cyle[i][2] && cyle[i][0] > cyle[i][3]) {
+				taddback[i] = cylt[i][0];
+			}
+			else if (cyle[i][1] > cyle[i][0] && cyle[i][1] > cyle[i][2] && cyle[i][1] > cyle[i][3]) {
+				taddback[i] = cylt[i][1];
+			}
+			else {
+				taddback[i] = ((cyle[i][2] > cyle[i][3]) ? cyle[i][2] : cyle[i][3]);
 			}
 		}
 	}
