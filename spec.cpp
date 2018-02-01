@@ -33,7 +33,7 @@ int main()
 
 	FILE *fp;
 
-	if ((fp=fopen("../d17/R17_0", "rb")) == NULL) {
+	if ((fp=fopen("../d17/R51_0", "rb")) == NULL) {
 		printf("can not open the file.\n");
 		return -1;
 	}
@@ -56,7 +56,6 @@ int main()
 	const int timeciondience = 150;
 	int kk = 0;
 	bool eventflag = 1;
-	// int tmptimestampcount = 0;
 	long long tmptime = 0;
  	unsigned short tmptimestamp[2][2];
  	long long t0 = 0;
@@ -66,6 +65,10 @@ int main()
  	// for addback
  	double eaddback[9];
  	long long taddback[9];
+
+ 	// for csi
+ 	unsigned short qdc[64][4];
+ 	long long qtime[64][4][2];
 
 	while (fread(block, sizeof(unsigned short), blocksize, fp)) {
 		// fread(block, sizeof(unsigned short), blocksize, fp);
@@ -125,7 +128,7 @@ int main()
 					pb+=4; // we don't need continue here, because maybe there is a 8440 in an event...
 				}
 				else { // read some information, included adc, tdc, timestamp
-					getadc_tdc_timestamp(pb, label_tail, adc, tdc, etime, xtime);
+					getadc_tdc_timestamp(pb, label_tail, adc, tdc, etime, xtime, qdc, qtime);
 					tmptimestamp[0][0] = *(pb-3); // 0-15bit
 					tmptimestamp[0][1] = *(pb-2); // 16-32bit
 					t0 = (tmptimestamp[0][1]<<16) + tmptimestamp[0][0];
@@ -163,7 +166,7 @@ int main()
 							break;
 						}
 
-						getadc_tdc_timestamp(pb, label_tail, adc, tdc, etime, xtime);
+						getadc_tdc_timestamp(pb, label_tail, adc, tdc, etime, xtime, qdc, qtime);
 						// tmptimestampcount++;
 						pb+=4;
 					}
@@ -178,50 +181,51 @@ int main()
 				// }
 				// cout << "......" << endl;
 				
-				// getspecture
+				// get energy specture
 				for (int s = 0; s < 9; s++) {
 					if ((eaddback[s] >= 30) && (eaddback[s] <= 2047)) {
 						hspec->Fill(eaddback[s]);
 					}
 				}
 
-				for (int m = 0; m < 9; m++) {
-					if ((eaddback[m] >= 30) && (eaddback[m] <= 2047)) { // ((eaddback[m] >= 30) && (eaddback[m] <= 2047))
-						firecount++;
-					}
-				}
+				// // get multi specture
+				// for (int m = 0; m < 9; m++) {
+				// 	if ((eaddback[m] >= 30) && (eaddback[m] <= 2047)) { // ((eaddback[m] >= 30) && (eaddback[m] <= 2047))
+				// 		firecount++;
+				// 	}
+				// }
+				// hmultifired->Fill(firecount);
 
-				hmultifired->Fill(firecount);
+				// if (firecount == 0) {
+				// 	continue; // jump the event without clover fired...
+				// }
 
-				if (firecount == 0) {
-					continue; // jump the event without clover fired...
-				}
+				// //  get coindience time soecture
+				// int firedclvnum[9] = {0};
+				// int ss = 0; // temp for fireclover
+				// for (int s = 0; s < 9; s++) {
+				// 	if ((eaddback[s] >= 30) && (eaddback[s] <= 2047)) {
+				// 		firedclvnum[ss] = s;
+				// 		ss++;
+				// 	}
+				// }
 				
-
-				int firedclvnum[9] = {0};
-				int ss = 0; // temp for fireclover
-				for (int s = 0; s < 9; s++) {
-					if ((eaddback[s] >= 30) && (eaddback[s] <= 2047)) {
-						firedclvnum[ss] = s;
-						ss++;
-					}
-				}
+				// long long timediff[8] = {0};
 				
-				long long timediff[8] = {0};
+				// if (firecount >= 2) { // for time difference
+				// 	for (int s = 0; s < (firecount-1); s++) {
+				// 		timediff[s] = taddback[firedclvnum[s]] - taddback[firedclvnum[s+1]] + 4000;
+				// 	}
+				// 	timediff[firecount-1] = taddback[firedclvnum[firecount-1]] - taddback[firedclvnum[0]] + 4000;
+				// 	for (int s = 0; s < firecount; s++) {
+				// 		htime->Fill(timediff[s] + ((rand()%999 + 1) / 100.0));
+				// 		// cout << timediff[s] << endl;
+				// 		// cout << (rand()%999 + 1) / 1000.0 << endl; 
+				// 	}
+				// 	timediff[firecount] = {0};
+				// }
 
-				
-				if (firecount >= 2) { // for time difference
-					for (int s = 0; s < (firecount-1); s++) {
-						timediff[s] = taddback[firedclvnum[s]] - taddback[firedclvnum[s+1]] + 4000;
-					}
-					timediff[firecount-1] = taddback[firedclvnum[firecount-1]] - taddback[firedclvnum[0]] + 4000;
-					for (int s = 0; s < firecount; s++) {
-						htime->Fill(timediff[s] + ((rand()%999 + 1) / 100.0));
-						// cout << timediff[s] << endl;
-						// cout << (rand()%999 + 1) / 1000.0 << endl; 
-					}
-					timediff[firecount] = {0};
-				}
+
 				// for (int m = 0; m < 9; m++) { // test adc value
 				// 	for (int n = 0; n < 4; n++) {
 				// 		printf("%04x  ", adc[m][n]);
@@ -229,8 +233,13 @@ int main()
 				// 	printf("......\n");
 				// }
 
-				// cout << "+++" << kk << "+++" << endl;
-				// continue;
+				// for (int m = 0; m < 64; m++) { // test qdc value
+				// 	for (int n = 0; n < 4; n++) {
+				// 		printf("%04x  ", qdc[m][n]);
+				// 	}
+				// 	printf("......\n");
+				// }
+				// printf("\n\n");
 
 				// else if (label_head == 12) {
 				// 	timestamp[0] = *(pb-2);
