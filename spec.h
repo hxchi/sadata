@@ -781,3 +781,30 @@ void addback(double calpar[9][4][3], unsigned short adc[9][4], unsigned short td
 		}
 	}
 }
+
+
+bool getgate(double qlong, double qshort)
+{
+	double upfitpar[3] = {427.687, 0.3811, 83.492};
+	double downfitpar[3] = {354.67, 0.3614, 67.361};
+
+	double upqshort = 0;
+	double downqshort = 0;
+
+	upqshort = upfitpar[0] + qlong * upfitpar[1] + upfitpar[2];
+	downqshort = downfitpar[0] + qlong * downfitpar[1] - downfitpar[2];
+
+	if ((upqshort > qshort) && (qshort > downqshort)) {
+		// cout << "......opps......" <<endl;
+		if ((upqshort + downqshort - 2 * qshort) > 0) {
+			return 1; // if is 1, set downline as gate
+		}
+		else {
+			return 0; // if is 1, set upline as gate
+		}
+	}
+	else {
+		return 0;
+	}
+}
+

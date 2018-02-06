@@ -3,15 +3,32 @@
 // root
 #include "TCanvas.h"
 #include "TFile.h"
+#include "TString.h"
 #include "TH1D.h"
+#include "TH2D.h"
 
 int main()
 {
 	// from root
-	TFile *prf = new TFile("r.root", "recreate");
+	TFile *prf = new TFile("r_47_0.root", "recreate");
 	TH1D *htime = new TH1D("htime", " ", 16000, 2000, 6000);
 	TH1D *hspec = new TH1D("hspec", " ", 4096, 0, 2047);
 	TH1D *hmultifired = new TH1D("hmultifired", " ", 8, 1, 9);
+	// for qdc specture
+	// TH1D *q[64][4];
+	// for (Int_t m = 0; m < 64; m++) {
+	// 	for (Int_t n = 0; n < 4; n++)
+	// 	q[m][n] = new TH1D(Form("csi%dq%d", m, n), " ", 16384, 0, 16384);
+	// }
+
+	// for qdc specture, after gate 
+	TH1D *hspecaftergate = new TH1D("hspecaftergate", " ", 4096, 0, 2047);
+
+	// for pid
+	// TH2D *pid[64];
+	// for (Int_t s = 0; s < 64; s++) {
+	// 	pid[s] = new TH2D(Form("pid%d", s), " ", 2048, 0, 2048, 2048, 0, 2048);
+	// }
 
 	struct SARDATAHEADER // south africa data header
 	{
@@ -33,7 +50,7 @@ int main()
 
 	FILE *fp;
 
-	if ((fp=fopen("../d17/R51_0", "rb")) == NULL) {
+	if ((fp=fopen("../d17/R47_0", "rb")) == NULL) {
 		printf("can not open the file.\n");
 		return -1;
 	}
@@ -70,6 +87,13 @@ int main()
  	unsigned short qdc[64][4];
  	long long qtime[64][4][2];
 
+ 	// for pid
+ 	double qlong = 0;
+ 	double qshort = 0;
+
+ 	// for gate
+ 	bool gateflags;
+
 	while (fread(block, sizeof(unsigned short), blocksize, fp)) {
 		// fread(block, sizeof(unsigned short), blocksize, fp);
 		pb = block;
@@ -93,7 +117,9 @@ int main()
 				// init
 				// cout << "...start an event..." << endl;
 				firecount = 0;
-				// tmptimestampcount = 0;
+				qlong = 0.0;
+				qshort = 0.0;
+				gateflags = 0;
 				for (int m = 0; m < 9; m++) {
 					for (int n = 0; n < 4; n++) {
 						adc[m][n] = 0;
@@ -185,6 +211,44 @@ int main()
 				for (int s = 0; s < 9; s++) {
 					if ((eaddback[s] >= 30) && (eaddback[s] <= 2047)) {
 						hspec->Fill(eaddback[s]);
+					}
+				}
+
+				// get qdc specture
+				// for (int m = 0; m < 64; m++) {
+				// 	for (int n = 0; n < 4; n++) {
+				// 		if (qdc[m][n] >=10) {
+				// 			q[m][n]->Fill(qdc[m][n]);
+				// 		}
+				// 	}
+				// }
+
+				// get pid specture
+				// for (int s = 0; s < 64; s++) {
+				// 	if ((qdc[s][0] > 10) && (qdc[s][1] > 10) && (qdc[s][2] > 10) && (qdc[s][3] > 10)) {
+				// 		qshort = qdc[s][1]/8.0 + qdc[s][2]/8.0 - qdc[s][0]/8.0 + 400;
+				// 		qlong = 2 * (qdc[s][3]/8.0 - qdc[s][1]/8.0) - 500;
+				// 		pid[s]->Fill(qlong, qshort);
+				// 	}
+				// }
+
+
+				// gate from csi identification
+				for (int m = 0; m < 64; m++) {
+					if ((qdc[m][0] > 10) && (qdc[m][1] > 10) && (qdc[m][2] > 10) && (qdc[m][3] > 10)) {
+						qshort = qdc[m][1]/8.0 + qdc[m][2]/8.0 - qdc[m][0]/8.0 + 400;
+						qlong = 2 * (qdc[m][3]/8.0 - qdc[m][1]/8.0) - 500;
+						if ((qlong >= 800) && (m == 16)) {
+							gateflags = getgate(qlong, qshort);
+							if (gateflags) {
+								// cout << "....." << gateflags <<  endl;
+								for (int n = 0; n < 9; n++) {
+									if ((eaddback[n] >= 30) && (eaddback[n] <= 2047)) {
+										hspecaftergate->Fill(eaddback[n]);
+									}
+								}
+							}
+						}
 					}
 				}
 
