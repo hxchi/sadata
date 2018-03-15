@@ -110,11 +110,14 @@ class Analysis{
   
  public:			/* process */
   void MoveBaseline();
+  void getAmplitude(int lft, int rgt); /* from point lft to point rgt calculate amplitude, this calculate right after eliminating baseline */
   void MAFilter(double *lft, double *rgt);
   void MGFilter(double *lft, double *rgt);
 
-  void fitWave(int ci);
+  void fitWave();
   void MWDFilter(double *lft, double *rgt);
+
+  void getRiseStart();
   
  public:			/* get par */
   void getNevt();
@@ -141,6 +144,7 @@ class Analysis{
   bool plusepolarity;
   int baselinecalpoints;
   double baseline;
+  double amplitude;
   
   ULong64_t nevt;
   UShort_t ltra;
@@ -150,7 +154,9 @@ class Analysis{
   int mgfiltern;
   int mwdfiltern;
   Double_t par[6];
-
+  Double_t maxvalueofmgfilter;
+  int maxpointofmgfilter;
+  double risestart;		/* unit is point */
   
  private:
   UShort_t y[MaxTraceN];

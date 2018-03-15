@@ -1,6 +1,8 @@
 #include "analysis.h"
 #include "TMath.h"
 
+#include <algorithm>
+
 // fuction used in this file
 // no.1
 double getdn(int n, int np)
@@ -53,7 +55,6 @@ Double_t douexp(Double_t *x, Double_t *p)
   }
 }
 
-
 // member function of class Analysis
 Analysis::Analysis(const char *infile)
 {
@@ -67,10 +68,10 @@ Analysis::Analysis(const char *infile)
   orit->SetBranchAddress("x", x);
 
   orig = new TGraph();
-  hc = new TCanvas("hc", "", 1200, 700);
+  hc = new TCanvas("hc", "", 600, 400);
   hc->Divide(2, 2);
   
-  orit->GetEntry(1);
+  orit->GetEntry(2);
   // cout << "ltra = " << ltra << endl;
   // for(int i = 0; i < ltra; i++){
   //   cout << x[i] << " " << y[i] << endl;
@@ -125,6 +126,19 @@ void Analysis::MoveBaseline()
 }
 
 
+void Analysis::getAmplitude(int lft, int rgt)
+{
+  double amp = yy[0];
+  for(int i = lft; i < rgt; i++){
+    if(yy[i] > amp){
+      amp = yy[i];
+    }
+  }
+  amplitude = amp;
+  cout << amplitude << endl;
+}
+
+
 void Analysis::MAFilter(double *lft, double *rgt)
 {
   for(int i = 0; i < mafiltern; i++){
@@ -151,7 +165,7 @@ void Analysis::MGFilter(double *lft, double *rgt)
     for(int j = -mgfiltern; j <= mgfiltern; j++){
       dn = getdn(j, mgfiltern);
       // cout << "dn = " << dn << endl;
-      rgt[i] += dn*yy[i-j];
+      rgt[i] += dn*yy[i+j];
     }
     lft[i] = i;
     // cout << xx[i] << " " << yy[i] << endl;
@@ -162,9 +176,26 @@ void Analysis::MGFilter(double *lft, double *rgt)
     lft[i] = i;
     rgt[i] = rgt[ltra-mgfiltern-1];
   }
+
+  Double_t max = rgt[0];
+  for(int i = 0; i < ltra; i++){
+    if(rgt[i] > max){
+      max = rgt[i];
+    }
+  }
+  cout << "max is " << max << endl;
+  maxvalueofmgfilter = max;
+
+  for(int i = 0; i < ltra; i++){
+    if(rgt[i] == maxvalueofmgfilter){
+      maxpointofmgfilter = i;
+      cout << "maxpointofmgfilter is " << i << endl;
+      break;
+    }
+  }
 }
 
-void Analysis::fitWave(int ci)
+void Analysis::fitWave()
 {
  // fetch the TF1 named "deuxmax"
  TF1 *hf1 =(TF1 *)gROOT->FindObject("deuxmax");
@@ -178,17 +209,15 @@ void Analysis::fitWave(int ci)
 
  // fetch the TF1 named "hf2"
  TF1 *hf2 = new TF1("hf2", douexp, 500, 1500, 5);
- hf2->SetParameters(5000, 10, 1000, 100000, 0);
- 
- hc->cd(1);
+ hf2->SetParameters(500, 10, 1000, 100000, 0);
  orig->Fit("hf2");
 
- hf2->Draw("same");
- hf2->SetLineColor(kBlue);
- hf2->SetLineWidth(4);
+ // hf2->Draw("same");
+ // hf2->SetLineColor(kBlue);
+ // hf2->SetLineWidth(4);
 
  hf2->GetParameters(par);
- for(int i = 0; i < 6; i++){
+ for(int i = 0; i < 5; i++){
    cout << "par " << i << " = " << par[i] << endl;
  }
 
@@ -208,12 +237,12 @@ void Analysis::fitWave(int ci)
    hg2->SetPoint(i, hx2[i], hy2[i]);
  }
 
- TCanvas *hc1 = new TCanvas("hc1", "par[0]", 600, 400);
- TCanvas *hc2 = new TCanvas("hc2", "par[1]", 600, 400);
- hc1->cd();
- hg1->Draw();
- hc2->cd();
- hg2->Draw();
+ // TCanvas *hc1 = new TCanvas("hc1", "par[0]", 600, 400);
+ // TCanvas *hc2 = new TCanvas("hc2", "par[1]", 600, 400);
+ // hc1->cd();
+ // hg1->Draw();
+ // hc2->cd();
+ // hg2->Draw();
  
 }
 
@@ -252,10 +281,15 @@ void Analysis::MWDFilter(double *lft, double *rgt)
 
   //   cout << lft[(int)i] << " " << rgt[(int)i] << endl;
   // }
-
-  
-  
 }
+
+
+void Analysis::getRiseStart()
+{
+  risestart = (maxvalueofmgfilter*maxpointofmgfilter - yy[maxpointofmgfilter])/maxvalueofmgfilter;
+  cout << "risestart is " << risestart << endl;
+}
+
 
 void Analysis::getNevt()
 {
