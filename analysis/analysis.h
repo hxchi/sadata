@@ -118,6 +118,9 @@ class Analysis{
   void MWDFilter(double *lft, double *rgt);
 
   void getRiseStart();
+  void getRiseTime();
+
+  void getCFD(double *lft, double *rgt);
   
  public:			/* get par */
   void getNevt();
@@ -157,6 +160,7 @@ class Analysis{
   Double_t maxvalueofmgfilter;
   int maxpointofmgfilter;
   double risestart;		/* unit is point */
+  double risetime;
   
  private:
   UShort_t y[MaxTraceN];

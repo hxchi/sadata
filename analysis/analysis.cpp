@@ -71,7 +71,7 @@ Analysis::Analysis(const char *infile)
   hc = new TCanvas("hc", "", 600, 400);
   hc->Divide(2, 2);
   
-  orit->GetEntry(2);
+  orit->GetEntry(0);
   // cout << "ltra = " << ltra << endl;
   // for(int i = 0; i < ltra; i++){
   //   cout << x[i] << " " << y[i] << endl;
@@ -209,7 +209,7 @@ void Analysis::fitWave()
 
  // fetch the TF1 named "hf2"
  TF1 *hf2 = new TF1("hf2", douexp, 500, 1500, 5);
- hf2->SetParameters(500, 10, 1000, 100000, 0);
+ hf2->SetParameters(3000, 10, 1000, 100000, 0);
  orig->Fit("hf2");
 
  // hf2->Draw("same");
@@ -291,11 +291,72 @@ void Analysis::getRiseStart()
 }
 
 
+void Analysis::getRiseTime()
+{
+  double amptime = 0;
+  for(int i = 0; i < ltra; i++){
+    if(amplitude == yy[i]){
+      amptime = i;
+      cout << "amptime is " << i << endl;
+      break;
+    }
+  }
+  risetime = amptime - risestart;
+  cout << "risetime is " << risetime << endl;
+}
+
+
+void Analysis::getCFD(double *lft, double *rgt)
+{
+  double cfdfactor = 0.4;
+  int decaypoint = (int)(risetime*cfdfactor);
+  for(int i = 0; i < ltra; i++){
+    lft[i] = i;
+    rgt[i] = yy[i-decaypoint] - cfdfactor*yy[i];
+  }
+
+  // get cross zore time
+  int xmax = 0;
+  int xmin = 0;
+  Double_t tmpmax = rgt[0];
+  Double_t tmpmin = rgt[0];
+  int zerocross = 0;
+  for(int i = 0; i < ltra; i++){
+    if(tmpmax < rgt[i]){
+      tmpmax = rgt[i];
+    }
+    if(tmpmin > rgt[i]){
+      tmpmin = rgt[i];
+    }
+  }
+
+  for(int i = 0; i < ltra; i++){
+    if(rgt[i] == tmpmin){
+      xmin = i;
+      continue;
+    }
+    if(rgt[i] == tmpmax){
+      xmax = i;
+      break;
+    }
+  }
+
+  cout << "xmax is " << xmax << endl;
+  cout << "xmin is " << xmin << endl;
+
+  for(int i = xmin; i <= xmax; i++){
+    if((rgt[i] < 0) && (rgt[i+1] > 0)){
+      zerocross = ((rgt[i]+rgt[i+1]) > 0 ? i : i+1);
+    }
+  }
+  cout << "zerocross is " << zerocross << endl;
+}
+
+
 void Analysis::getNevt()
 {
   cout << nevt << endl;
 }
-
 
 
 void Analysis::getLtra(int &tracelength)
