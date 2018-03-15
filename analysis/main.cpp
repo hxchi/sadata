@@ -11,6 +11,9 @@ int test()
 
   double ymg[MaxTraceN];	// for MG filter
   double xmg[MaxTraceN];
+
+  double ymwd[MaxTraceN];	// for MWD filter
+  double xmwd[MaxTraceN];
   
   Analysis *ana = new Analysis("../getxiadata/r.root");
 
@@ -22,6 +25,8 @@ int test()
   int Ltra = 0;
   ana->getLtra(Ltra);
   ana->getOriWave(x, y);
+  ana->fitWave(1);
+  
   TCanvas *c = new TCanvas("c", "", 1200, 700);
   c->Divide(2,2);
   TGraph *hg = new TGraph();
@@ -51,7 +56,17 @@ int test()
   c->cd(3);
   hmgg->Draw();
 
-  ana->setFastFilterPar(0.01, 0.01, 0);
+  ana->MWDFilter(xmwd, ymwd);
+  TGraph *hmwdg = new TGraph();
+  ana->setMWDFilterParN(100);
+  ana->MWDFilter(xmwd, ymwd);
+  for(int i = 0; i < Ltra; i++){
+    hmwdg->SetPoint(i, xmwd[i], ymwd[i]);
+  }
+  c->cd(4);
+  hmwdg->Draw();
+
+  
   return 0;
 }
 
