@@ -3,7 +3,7 @@
 #ifndef R2ROOT_H_
 #define R2ROOT_H_
 
-#include "xia.h"
+#include "eventer.h"
 
 #include "TROOT.h"
 #include "TCanvas.h"
@@ -29,7 +29,7 @@ class R2root
   void ClearOpt();
 	
  private:
-  Eventer *rawevt;
+  Eventer *rawevt;		/* 使用Eventer类，作为输入 */
   bool havedata;
 
   Int_t nevt;

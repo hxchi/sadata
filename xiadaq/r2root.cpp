@@ -8,7 +8,7 @@ using std::cout; using std::endl;
 R2root::R2root(const char *infileN, const char *outfileN)
 {
   rawevt = new Eventer();
-  rawevt->OpenFile(infileN);
+  rawevt->_openFile(infileN);
 
   havedata = false;
 
@@ -58,13 +58,13 @@ void R2root::Process()
   ULong64_t timestamp;
   nevt = 0;
 
-  havedata = rawevt->GetNextEvent();
+  havedata = rawevt->_getNextEvent();
   cout << "test here..." << endl;
   while(true){
     timestamp = ULLONG_MAX;
     if(havedata){
-      if(rawevt->getts() < timestamp){
-	timestamp = rawevt->getts();
+      if(rawevt->_getts() < timestamp){
+	timestamp = rawevt->_getts();
       }
     }
     else{
@@ -74,37 +74,37 @@ void R2root::Process()
 
     ClearOpt();
 
-    ch = rawevt->getch();
-    sid = rawevt->getsid();
-    cid = rawevt->getcid();
-    pileup = rawevt->getpileup();
+    ch = rawevt->_getch();
+    sid = rawevt->_getsid();
+    cid = rawevt->_getcid();
+    pileup = rawevt->_getpileup();
 
-    ts = rawevt->getts();
-    cfd = rawevt->getcfd();
-    cfdft = rawevt->getcfdft();
+    ts = rawevt->_getts();
+    cfd = rawevt->_getcfd();
+    cfdft = rawevt->_getcfdft();
 
-    evte = rawevt->getevte();
-    ltra = rawevt->getltra();
-    outofr = rawevt->getoutofr();
+    evte = rawevt->_getevte();
+    ltra = rawevt->_getltra();
+    outofr = rawevt->_getoutofr();
 
-    if(rawevt->getesumf()){
-      trae = rawevt->gettrae();
-      leae = rawevt->getleae();
-      gape = rawevt->getgape();
-      // base = rawevt->getbase();
-      base = IeeeBin2Float(rawevt->getbase());
+    if(rawevt->_getesumflag()){
+      trae = rawevt->_gettrae();
+      leae = rawevt->_getleae();
+      gape = rawevt->_getgape();
+      // base = rawevt->_getbase();
+      base = IeeeBin2Float(rawevt->_getbase());
     }
 
-    if(rawevt->getqsumf()){
-      rawevt->getqs(qs);
+    if(rawevt->_getqsumflag()){
+      rawevt->_getqs(qs);
     }
 
-    if(rawevt->getetsf()){
-      ets = rawevt->getets();
+    if(rawevt->_getetsflag()){
+      ets = rawevt->_getets();
     }
 
-    if(rawevt->gettracef()){
-      rawevt->gettrace(data);
+    if(rawevt->_gettraceflag()){
+      rawevt->_gettrace(data);
       for(int i = 0; i < (int)ltra; i++){
 	x[i] = i;
       }
@@ -117,7 +117,7 @@ void R2root::Process()
       cout << "nunber of event: " << nevt << endl; 
     }
 
-    havedata = rawevt->GetNextEvent();
+    havedata = rawevt->_getNextEvent();
 
     // for test
     if(nevt == 1){
