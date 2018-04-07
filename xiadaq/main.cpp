@@ -1,6 +1,6 @@
 /*get xia data*/
 
-#include "xia.h"
+#include "eventer.h"
 #include "r2root.h"
 
 // root
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
   // for south afria data
   char inputfile[80] = "/home/xch/Desktop/xiadata/rawdata_mod2-DDAS-2017-12-11-04:24:30.bin";
 
-  R2root r2r(inputfile, "rsf.root");
+  R2root r2r(inputfile, "./file-out/rsf0407.root");
   r2r.Process();
 	
   return 0;
