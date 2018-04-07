@@ -1,1 +1,5 @@
-class eventer and class r2root is copy from wuhongyi in pku.
+该文件夹内的程序用于将原始数据转换为root文件。
+
+转换为root文件的好处：
+1.完成第一步反演，原始数据可以通过tree类进行处理。
+2.通过后续的chain类,可以将多个root文件同时处理。
