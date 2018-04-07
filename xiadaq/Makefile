@@ -2,7 +2,7 @@
 # copy from why
 
 OBJ = aout
-sourcefile = main.cpp xia.h r2root.h xia.cpp r2root.cpp
+sourcefile = main.cpp eventer.h r2root.h eventer.cpp r2root.cpp
 
 ROOTCFLAGS  = $(shell root-config --cflags)
 ROOTLIBS    = $(shell root-config --libs)
